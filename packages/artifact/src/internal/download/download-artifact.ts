@@ -103,9 +103,7 @@ export async function streamExtractExternal(
     if (options?.unzip) {
       outputStream = unzip.Extract({ path: directory });
     } else {
-      const filename = `${options?.artifactName}.zip` || basename(scrubQueryParameters(url));
-      const outputPath = `${directory}/${filename}`;
-      outputStream = fsStream.createWriteStream(outputPath);
+      outputStream = fsStream.createWriteStream(directory);
     }
 
     extractStream
@@ -203,7 +201,7 @@ export async function downloadArtifactInternal(
 
   const artifactClient = internalArtifactTwirpClient()
 
-  const { expectedHash, path, ...streamExtractOptions} = options || {}
+  const { expectedHash, path, ...streamExtractOptions} = options ?? {}
 
   let digestMismatch = false
 

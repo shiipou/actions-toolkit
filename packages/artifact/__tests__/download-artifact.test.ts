@@ -87,8 +87,7 @@ const expectExtractedArchive = async (dir: string): Promise<void> => {
   }
 }
 
-const expectArchive = async (dir: string): Promise<void> => {
-  const filePath = path.join(dir, fixtures.artifactName + '.zip')
+const expectArchive = async (filePath: string): Promise<void> => {
   expect(fs.existsSync(filePath)).toBe(true)
   const stats = fs.statSync(filePath)
   expect(stats.isFile()).toBe(true)
@@ -478,10 +477,7 @@ describe('download-artifact', () => {
         fixtures.repositoryOwner,
         fixtures.repositoryName,
         fixtures.token,
-        {
-          unzip: false,
-          filename: fixtures.artifactName + '.zip'
-        }
+        { unzip: false }
       )
 
       expect(downloadArtifactMock).toHaveBeenCalledWith({
@@ -705,7 +701,7 @@ describe('download-artifact', () => {
         }
       )
 
-      const response = await downloadArtifactInternal(fixtures.artifactID, {unzip: false, filename: fixtures.artifactName + '.zip'})
+      const response = await downloadArtifactInternal(fixtures.artifactID, {unzip: false})
 
       expectArchive(fixtures.workspaceDir)
       expect(response.downloadPath).toBe(fixtures.workspaceDir)
