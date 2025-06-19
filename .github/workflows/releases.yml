@@ -75,24 +75,9 @@ jobs:
           name: ${{ github.event.inputs.package }}
 
       - name: setup authentication
-        run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> .npmrc
+        run: echo "//npm.pkg.github.com/:_authToken=${NPM_TOKEN}" >> .npmrc
         env:
-          NPM_TOKEN: ${{ secrets.TOKEN }}
+          NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: publish
         run: npm publish --provenance *.tgz
-
-      - name: notify slack on failure
-        if: failure()
-        run: |
-          curl -X POST -H 'Content-type: application/json' --data '{"text":":pb__failed: Failed to publish a new version of ${{ github.event.inputs.package }}"}' $SLACK_WEBHOOK
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK }}
-
-      - name: notify slack on success
-        if: success()
-        run: |
-          curl -X POST -H 'Content-type: application/json' --data '{"text":":dance: Successfully published a new version of ${{ github.event.inputs.package }}"}' $SLACK_WEBHOOK
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK }}
-
