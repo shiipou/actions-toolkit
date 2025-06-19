@@ -24,7 +24,7 @@ import {
 } from '../../generated'
 import {getBackendIdsFromToken} from '../shared/util'
 import {ArtifactNotFoundError} from '../shared/errors'
-import { basename } from 'path'
+import { basename, join } from 'path'
 
 const scrubQueryParameters = (url: string): string => {
   const parsed = new URL(url)
@@ -103,7 +103,8 @@ export async function streamExtractExternal(
     if (options?.unzip) {
       outputStream = unzip.Extract({ path: directory });
     } else {
-      outputStream = fsStream.createWriteStream(directory);
+      const fileName = `${options?.artifactName}.zip`;
+      outputStream = fsStream.createWriteStream(`${directory}/${fileName}`);
     }
 
     extractStream

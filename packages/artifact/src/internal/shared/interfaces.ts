@@ -118,6 +118,10 @@ export interface DownloadArtifactOptions {
    * Whenever to unzip the artifact after download.
    */
   unzip?: boolean
+  /**
+   * Artifact Name to download. Currently only used when `unzip` is set to false.
+   */
+  artifactName?: string
 }
 
 export interface StreamExtractOptions {
@@ -125,6 +129,10 @@ export interface StreamExtractOptions {
    * Whenever to unzip the artifact after download.
    */
   unzip?: boolean
+  /**
+   * Artifact Name to download. Currently only used when `unzip` is set to false.
+   */
+  artifactName?: string
 }
 
 export interface StreamExtractResponse {

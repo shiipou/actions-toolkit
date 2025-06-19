@@ -87,7 +87,8 @@ const expectExtractedArchive = async (dir: string): Promise<void> => {
   }
 }
 
-const expectArchive = async (filePath: string): Promise<void> => {
+const expectArchive = async (dir: string): Promise<void> => {
+  const filePath = path.join(dir, `${fixtures.artifactName}.zip`)
   expect(fs.existsSync(filePath)).toBe(true)
   const stats = fs.statSync(filePath)
   expect(stats.isFile()).toBe(true)
@@ -477,7 +478,7 @@ describe('download-artifact', () => {
         fixtures.repositoryOwner,
         fixtures.repositoryName,
         fixtures.token,
-        { unzip: false }
+        { unzip: false, artifactName: fixtures.artifactName }
       )
 
       expect(downloadArtifactMock).toHaveBeenCalledWith({
@@ -493,7 +494,7 @@ describe('download-artifact', () => {
       expect(mockGetArtifactSuccess).toHaveBeenCalledWith(
         fixtures.blobStorageUrl
       )
-      expectArchive(`${fixtures.workspaceDir}/${fixtures.artifactName}.zip`)
+      expectArchive(fixtures.workspaceDir)
       expect(response.downloadPath).toBe(fixtures.workspaceDir)
     })
   })
@@ -701,9 +702,9 @@ describe('download-artifact', () => {
         }
       )
 
-      const response = await downloadArtifactInternal(fixtures.artifactID, {unzip: false})
+      const response = await downloadArtifactInternal(fixtures.artifactID, {unzip: false, artifactName: fixtures.artifactName})
 
-      expectArchive(`${fixtures.workspaceDir}/${fixtures.artifactName}.zip`)
+      expectArchive(fixtures.workspaceDir)
       expect(response.downloadPath).toBe(fixtures.workspaceDir)
       expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
       expect(mockListArtifacts).toHaveBeenCalledWith({
