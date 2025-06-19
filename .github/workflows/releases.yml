@@ -20,7 +20,9 @@ on:
           - http-client
           - io
           - tool-cache
-          
+
+permissions:
+  packages: write
 
 jobs:
   test:
