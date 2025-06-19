@@ -112,7 +112,20 @@ export interface DownloadArtifactOptions {
    * will provide a digestMismatch property indicating whether the hash of the downloaded artifact
    * matches the expected hash.
    */
-  expectedHash?: string
+  expectedHash?: string,
+
+  /**
+   * Whenever to unzip the artifact after download.
+   * Defaults to true.
+   */
+  unzip?: boolean
+}
+
+export interface StreamExtractOptions {
+  /**
+   * Whenever to unzip the artifact after download.
+   */
+  unzip?: boolean
 }
 
 export interface StreamExtractResponse {

@@ -1,4 +1,6 @@
 import fs from 'fs/promises'
+import fsStream from 'fs'
+
 import * as crypto from 'crypto'
 import * as stream from 'stream'
 
@@ -9,6 +11,7 @@ import unzip from 'unzip-stream'
 import {
   DownloadArtifactOptions,
   DownloadArtifactResponse,
+  StreamExtractOptions,
   StreamExtractResponse
 } from '../shared/interfaces'
 import {getUserAgentString} from '../shared/user-agent'
@@ -21,6 +24,7 @@ import {
 } from '../../generated'
 import {getBackendIdsFromToken} from '../shared/util'
 import {ArtifactNotFoundError} from '../shared/errors'
+import { basename } from 'path'
 
 const scrubQueryParameters = (url: string): string => {
   const parsed = new URL(url)
@@ -43,12 +47,13 @@ async function exists(path: string): Promise<boolean> {
 
 async function streamExtract(
   url: string,
-  directory: string
+  directory: string,
+  options?: StreamExtractOptions
 ): Promise<StreamExtractResponse> {
   let retryCount = 0
   while (retryCount < 5) {
     try {
-      return await streamExtractExternal(url, directory)
+      return await streamExtractExternal(url, directory, options)
     } catch (error) {
       retryCount++
       core.debug(
@@ -64,7 +69,8 @@ async function streamExtract(
 
 export async function streamExtractExternal(
   url: string,
-  directory: string
+  directory: string,
+  options?: StreamExtractOptions
 ): Promise<StreamExtractResponse> {
   const client = new httpClient.HttpClient(getUserAgentString())
   const response = await client.get(url)
@@ -92,6 +98,16 @@ export async function streamExtractExternal(
     passThrough.pipe(hashStream)
     const extractStream = passThrough
 
+    let outputStream: stream.Writable;
+
+    if (options?.unzip) {
+      outputStream = unzip.Extract({ path: directory });
+    } else {
+      const filename = response.headers['content-disposition'].match(/filename="(.+)"/)[1];
+      const outputPath = `${directory}/${filename}`;
+      outputStream = fsStream.createWriteStream(outputPath);
+    }
+
     extractStream
       .on('data', () => {
         timer.refresh()
@@ -103,7 +119,7 @@ export async function streamExtractExternal(
         clearTimeout(timer)
         reject(error)
       })
-      .pipe(unzip.Extract({path: directory}))
+      .pipe(outputStream)
       .on('close', () => {
         clearTimeout(timer)
         if (hashStream) {
@@ -111,7 +127,7 @@ export async function streamExtractExternal(
           sha256Digest = hashStream.read() as string
           core.info(`SHA256 digest of downloaded artifact is ${sha256Digest}`)
         }
-        resolve({sha256Digest: `sha256:${sha256Digest}`})
+        resolve({ sha256Digest: `sha256:${sha256Digest}` })
       })
       .on('error', (error: Error) => {
         reject(error)
@@ -161,7 +177,7 @@ export async function downloadArtifactPublic(
 
   try {
     core.info(`Starting download of artifact to: ${downloadPath}`)
-    const extractResponse = await streamExtract(location, downloadPath)
+    const extractResponse = await streamExtract(location, downloadPath, {unzip: options?.unzip})
     core.info(`Artifact download completed successfully.`)
     if (options?.expectedHash) {
       if (options?.expectedHash !== extractResponse.sha256Digest) {
@@ -222,7 +238,7 @@ export async function downloadArtifactInternal(
 
   try {
     core.info(`Starting download of artifact to: ${downloadPath}`)
-    const extractResponse = await streamExtract(signedUrl, downloadPath)
+    const extractResponse = await streamExtract(signedUrl, downloadPath, {unzip: options?.unzip})
     core.info(`Artifact download completed successfully.`)
     if (options?.expectedHash) {
       if (options?.expectedHash !== extractResponse.sha256Digest) {

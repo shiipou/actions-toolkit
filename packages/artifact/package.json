@@ -1,5 +1,5 @@
 {
-  "name": "@shiipou/actions-artifact",
+  "name": "@actions/artifact",
   "version": "2.3.3",
   "preview": true,
   "description": "Actions artifact lib",
