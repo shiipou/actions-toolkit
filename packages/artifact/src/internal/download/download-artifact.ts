@@ -98,12 +98,12 @@ export async function streamExtractExternal(
     passThrough.pipe(hashStream)
     const extractStream = passThrough
 
-    let outputStream: stream.Writable;
+    let outputStream: NodeJS.WritableStream;
 
     if (options?.unzip) {
       outputStream = unzip.Extract({ path: directory });
     } else {
-      const filename = response.headers['content-disposition'].match(/filename="(.+)"/)[1];
+      const filename = `${options?.artifactName}.zip` || basename(scrubQueryParameters(url));
       const outputPath = `${directory}/${filename}`;
       outputStream = fsStream.createWriteStream(outputPath);
     }
@@ -147,6 +147,8 @@ export async function downloadArtifactPublic(
   const api = github.getOctokit(token)
 
   let digestMismatch = false
+  
+  const { expectedHash, path, ...streamExtractOptions} = options || {}
 
   core.info(
     `Downloading artifact '${artifactId}' from '${repositoryOwner}/${repositoryName}'`
@@ -177,7 +179,7 @@ export async function downloadArtifactPublic(
 
   try {
     core.info(`Starting download of artifact to: ${downloadPath}`)
-    const extractResponse = await streamExtract(location, downloadPath, {unzip: options?.unzip})
+    const extractResponse = await streamExtract(location, downloadPath, streamExtractOptions)
     core.info(`Artifact download completed successfully.`)
     if (options?.expectedHash) {
       if (options?.expectedHash !== extractResponse.sha256Digest) {
@@ -200,6 +202,8 @@ export async function downloadArtifactInternal(
   const downloadPath = await resolveOrCreateDirectory(options?.path)
 
   const artifactClient = internalArtifactTwirpClient()
+
+  const { expectedHash, path, ...streamExtractOptions} = options || {}
 
   let digestMismatch = false
 
@@ -238,7 +242,7 @@ export async function downloadArtifactInternal(
 
   try {
     core.info(`Starting download of artifact to: ${downloadPath}`)
-    const extractResponse = await streamExtract(signedUrl, downloadPath, {unzip: options?.unzip})
+    const extractResponse = await streamExtract(signedUrl, downloadPath, streamExtractOptions)
     core.info(`Artifact download completed successfully.`)
     if (options?.expectedHash) {
       if (options?.expectedHash !== extractResponse.sha256Digest) {

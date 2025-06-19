@@ -8,7 +8,7 @@
     "actions",
     "artifact"
   ],
-  "homepage": "https://github.com/shiipou/actions-toolkit/tree/main/packages/artifact",
+  "homepage": "https://github.com/actions/toolkit/tree/main/packages/artifact",
   "license": "MIT",
   "main": "lib/artifact.js",
   "types": "lib/artifact.d.ts",
@@ -25,7 +25,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/shiipou/actions-toolkit.git",
+    "url": "git+https://github.com/actions/toolkit.git",
     "directory": "packages/artifact"
   },
   "scripts": {
